@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using NetFwTypeLib;
@@ -24,7 +25,8 @@ namespace WindowsFirewallHarden
                 Console.WriteLine("1. Firewall Checker");
                 Console.WriteLine("2. Firewall Harden");
                 Console.WriteLine("3. Firewall Harden - No Init Rule");
-                Console.WriteLine("4. Reset");
+                Console.WriteLine("4. Init Rule - Block All Inbound / Outbound Traffic ( Only Exception )");
+                Console.WriteLine("5. Reset");
                 Console.WriteLine("++++++++++++++++++");
                 Console.Write(">>>");
                 switch (int.Parse(Console.ReadLine()))
@@ -46,6 +48,10 @@ namespace WindowsFirewallHarden
                         break;
 
                     case 4:
+                        initRule();
+                        break;
+
+                    case 5:
                         fwReset();
                         break;
 
@@ -70,13 +76,26 @@ namespace WindowsFirewallHarden
 
         static void fwHarden(bool Init)
         {
-            fwReset();
+            Type tNetFwPolicy2 = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
+            INetFwPolicy2 fwPolicy2 = (INetFwPolicy2)Activator.CreateInstance(tNetFwPolicy2);
+            var currentProfiles = fwPolicy2.CurrentProfileTypes;
+            List<string> ruleList = new List<string>();
+
+            foreach (INetFwRule rule in fwPolicy2.Rules)
+            {
+                ruleList.Add(rule.Name.ToLower());
+            }
 
             string[] rows = { programFiles, programFilesx86, winDir, appLocal, appRoaming };
+
             foreach (var dir in rows)
             {
                 foreach (var file in GetFiles(dir, ext))
                 {
+                    var match = ruleList
+                    .FirstOrDefault(stringToCheck => stringToCheck.Contains(file.ToLower()));
+
+                    if (match != null) { Console.WriteLine($"[A]{file}"); continue; }
                     if (checkSignature(file))
                     {
                         Console.WriteLine($"[+] {file}");
@@ -141,6 +160,12 @@ namespace WindowsFirewallHarden
             INetFwPolicy2 fwPolicy = (INetFwPolicy2)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
             fwRule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_OUT;
             fwPolicy.Rules.Add(fwRule);
+        }
+
+        static void duplicateRule(string fileName)
+        {
+            INetFwPolicy2 fwPolicy = (INetFwPolicy2)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
+            
         }
 
         static void fwReset()
