@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using NetFwTypeLib;
 using WindowsFirewallHelper;
+
 namespace WindowaFirewallHarden
 {
     class Program
@@ -101,6 +102,7 @@ namespace WindowaFirewallHarden
         
         static void resetFirewall()
         {
+            /*
             try
             {
                 var p = new Process();
@@ -123,7 +125,12 @@ namespace WindowaFirewallHarden
                 Console.WriteLine(ex.Message);
                 errText(2);
             }
-         }
+            */
+
+            Type netFwPolicy2Type = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
+            INetFwPolicy2 mgr = (INetFwPolicy2)Activator.CreateInstance(netFwPolicy2Type);
+            mgr.RestoreLocalFirewallDefaults();           
+        }
 
         static void initRule()
         {
