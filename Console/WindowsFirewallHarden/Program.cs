@@ -77,7 +77,7 @@ namespace WindowsFirewallHarden
         static void fwHarden(bool Init)
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
-
+            
             Type tNetFwPolicy2 = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
             INetFwPolicy2 fwPolicy2 = (INetFwPolicy2)Activator.CreateInstance(tNetFwPolicy2);
             var currentProfiles = fwPolicy2.CurrentProfileTypes;
@@ -97,7 +97,8 @@ namespace WindowsFirewallHarden
                     var match = ruleList
                     .FirstOrDefault(stringToCheck => stringToCheck.Contains(file.ToLower()));
 
-                    if (match != null) { Console.WriteLine($"[A]{file}"); continue; }
+                    if(match != null) { Console.WriteLine($"[A]{file}"); continue; }
+                    //if (isRuleExists(file)) { Console.WriteLine($"[A]{file}"); continue; } // slow
                     if (checkSignature(file))
                     {
                         Console.WriteLine($"[+] {file}");
@@ -168,10 +169,21 @@ namespace WindowsFirewallHarden
             fwPolicy.Rules.Add(fwRule);
         }
 
-        static void duplicateRule(string fileName)
+        static bool isRuleExists(string fileName)
         {
-            INetFwPolicy2 fwPolicy = (INetFwPolicy2)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
-            
+            Type tNetFwPolicy2 = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
+            INetFwPolicy2 fwPolicy2 = (INetFwPolicy2)Activator.CreateInstance(tNetFwPolicy2);
+            var currentProfiles = fwPolicy2.CurrentProfileTypes;
+
+            foreach (INetFwRule rule in fwPolicy2.Rules)
+            {
+
+                if (rule.Name.Equals(fileName))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         static void fwReset()
