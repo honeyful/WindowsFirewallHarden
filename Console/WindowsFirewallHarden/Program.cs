@@ -76,6 +76,8 @@ namespace WindowsFirewallHarden
 
         static void fwHarden(bool Init)
         {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
             Type tNetFwPolicy2 = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
             INetFwPolicy2 fwPolicy2 = (INetFwPolicy2)Activator.CreateInstance(tNetFwPolicy2);
             var currentProfiles = fwPolicy2.CurrentProfileTypes;
@@ -112,6 +114,10 @@ namespace WindowsFirewallHarden
 
             if (Init)
                 initRule();
+
+            sw.Stop();
+            var elapsedMs = sw.ElapsedMilliseconds;
+            Console.WriteLine($"Time:{elapsedMs}");
         }
 
         static void initRule()
