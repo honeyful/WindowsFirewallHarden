@@ -19,14 +19,15 @@ namespace WindowsFirewallHarden
         {
             while (true)
             {
-                System.Console.WriteLine("++++++++++++++++++");
-                System.Console.WriteLine("0. Exit");
-                System.Console.WriteLine("1. Firewall Checker");
-                System.Console.WriteLine("2. Firewall Harden");
-                System.Console.WriteLine("3. Reset");
-                System.Console.WriteLine("++++++++++++++++++");
-                System.Console.Write(">>>");
-                switch (int.Parse(System.Console.ReadLine()))
+                Console.WriteLine("++++++++++++++++++");
+                Console.WriteLine("0. Exit");
+                Console.WriteLine("1. Firewall Checker");
+                Console.WriteLine("2. Firewall Harden");
+                Console.WriteLine("3. Firewall Harden - No Init Rule");
+                Console.WriteLine("4. Reset");
+                Console.WriteLine("++++++++++++++++++");
+                Console.Write(">>>");
+                switch (int.Parse(Console.ReadLine()))
                 {
                     case 0:
                         Environment.Exit(0);
@@ -37,10 +38,14 @@ namespace WindowsFirewallHarden
                         break;
 
                     case 2:
-                        fwHarden();
+                        fwHarden(true);
                         break;
 
                     case 3:
+                        fwHarden(false);
+                        break;
+
+                    case 4:
                         fwReset();
                         break;
 
@@ -54,16 +59,16 @@ namespace WindowsFirewallHarden
         {
 
             domainFirewall();
-            System.Console.WriteLine();
+            Console.WriteLine();
 
             privateFirewall();
-            System.Console.WriteLine();
+            Console.WriteLine();
 
             publicFirewall();
-            System.Console.WriteLine();
+            Console.WriteLine();
         }
 
-        static void fwHarden()
+        static void fwHarden(bool Init)
         {
             fwReset();
 
@@ -74,19 +79,20 @@ namespace WindowsFirewallHarden
                 {
                     if (checkSignature(file))
                     {
-                        System.Console.WriteLine($"[+] {file}");
+                        Console.WriteLine($"[+] {file}");
                         allowRule(file);
 
                     }
                     else
                     {
-                        System.Console.WriteLine($"[-] {file}");
+                        Console.WriteLine($"[-] {file}");
                         blockRule(file);
                     }
                 }
             }
 
-            initRule();
+            if (Init)
+                initRule();
         }
 
         static void initRule()
@@ -106,7 +112,7 @@ namespace WindowsFirewallHarden
             mgr.set_DefaultInboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PUBLIC, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
             mgr.set_DefaultOutboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PUBLIC, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
 
-            System.Console.WriteLine("[+] Init Rule");
+            Console.WriteLine("[+] Init Rule");
         }
 
         static void allowRule(string fileName)
@@ -142,8 +148,8 @@ namespace WindowsFirewallHarden
             Type netFwPolicy2Type = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
             INetFwPolicy2 mgr = (INetFwPolicy2)Activator.CreateInstance(netFwPolicy2Type);
             mgr.RestoreLocalFirewallDefaults();
-            System.Console.WriteLine("Reset");
-            System.Console.WriteLine();
+            Console.WriteLine("Reset");
+            Console.WriteLine();
         }
 
         static void domainFirewall()
@@ -152,7 +158,7 @@ namespace WindowsFirewallHarden
             INetFwPolicy2 mgr = (INetFwPolicy2)Activator.CreateInstance(netFwPolicy2Type);
             NET_FW_PROFILE_TYPE2_ fwDomainProfileType = NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_DOMAIN;
 
-            System.Console.WriteLine("Domain Profile Type:");
+            Console.WriteLine("Domain Profile Type:");
 
 
 
@@ -161,10 +167,10 @@ namespace WindowsFirewallHarden
             var defaultInboundAction = mgr.get_DefaultInboundAction(fwDomainProfileType);
             var defaultOutboundAction = mgr.get_DefaultOutboundAction(fwDomainProfileType);
 
-            System.Console.WriteLine($"Firewall Enabled: {firewallEnabled.ToString()}");
-            System.Console.WriteLine($"Block All Inbound Traffic: {blockAllInboundTraffic.ToString()}");
-            System.Console.WriteLine($"Default Inbound Action:{defaultInboundAction.ToString()}");
-            System.Console.WriteLine($"Default Outbound Action:{defaultOutboundAction.ToString()}");
+            Console.WriteLine($"Firewall Enabled: {firewallEnabled.ToString()}");
+            Console.WriteLine($"Block All Inbound Traffic: {blockAllInboundTraffic.ToString()}");
+            Console.WriteLine($"Default Inbound Action:{defaultInboundAction.ToString()}");
+            Console.WriteLine($"Default Outbound Action:{defaultOutboundAction.ToString()}");
         }
 
         static void privateFirewall()
@@ -178,10 +184,10 @@ namespace WindowsFirewallHarden
             var defaultInboundAction = mgr.get_DefaultInboundAction(fwPrivateProfileType);
             var defaultOutboundAction = mgr.get_DefaultOutboundAction(fwPrivateProfileType);
 
-            System.Console.WriteLine($"Firewall Enabled: {firewallEnabled.ToString()}");
-            System.Console.WriteLine($"Block All Inbound Traffic: {blockAllInboundTraffic.ToString()}");
-            System.Console.WriteLine($"Default Inbound Action:{defaultInboundAction.ToString()}");
-            System.Console.WriteLine($"Default Outbound Action:{defaultOutboundAction.ToString()}");
+            Console.WriteLine($"Firewall Enabled: {firewallEnabled.ToString()}");
+            Console.WriteLine($"Block All Inbound Traffic: {blockAllInboundTraffic.ToString()}");
+            Console.WriteLine($"Default Inbound Action:{defaultInboundAction.ToString()}");
+            Console.WriteLine($"Default Outbound Action:{defaultOutboundAction.ToString()}");
         }
 
         static void publicFirewall()
@@ -195,10 +201,10 @@ namespace WindowsFirewallHarden
             var defaultInboundAction = mgr.get_DefaultInboundAction(fwPublicProfileType);
             var defaultOutboundAction = mgr.get_DefaultOutboundAction(fwPublicProfileType);
 
-            System.Console.WriteLine($"Firewall Enabled: {firewallEnabled.ToString()}");
-            System.Console.WriteLine($"Block All Inbound Traffic: {blockAllInboundTraffic.ToString()}");
-            System.Console.WriteLine($"Default Inbound Action:{defaultInboundAction.ToString()}");
-            System.Console.WriteLine($"Default Outbound Action:{defaultOutboundAction.ToString()}");
+            Console.WriteLine($"Firewall Enabled: {firewallEnabled.ToString()}");
+            Console.WriteLine($"Block All Inbound Traffic: {blockAllInboundTraffic.ToString()}");
+            Console.WriteLine($"Default Inbound Action:{defaultInboundAction.ToString()}");
+            Console.WriteLine($"Default Outbound Action:{defaultOutboundAction.ToString()}");
         }
 
         static bool checkSignature(string fileName)
