@@ -196,8 +196,6 @@ namespace WindowsFirewallHarden
 
             Console.WriteLine("Domain Profile Type:");
 
-
-
             var firewallEnabled = mgr.get_FirewallEnabled(fwDomainProfileType);
             var blockAllInboundTraffic = mgr.get_BlockAllInboundTraffic(fwDomainProfileType);
             var defaultInboundAction = mgr.get_DefaultInboundAction(fwDomainProfileType);
@@ -215,6 +213,8 @@ namespace WindowsFirewallHarden
             INetFwPolicy2 mgr = (INetFwPolicy2)Activator.CreateInstance(netFwPolicy2Type);
             NET_FW_PROFILE_TYPE2_ fwPrivateProfileType = NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PRIVATE;
 
+            Console.WriteLine("Private Profile Type:");
+
             var firewallEnabled = mgr.get_FirewallEnabled(fwPrivateProfileType);
             var blockAllInboundTraffic = mgr.get_BlockAllInboundTraffic(fwPrivateProfileType);
             var defaultInboundAction = mgr.get_DefaultInboundAction(fwPrivateProfileType);
@@ -231,6 +231,8 @@ namespace WindowsFirewallHarden
             Type netFwPolicy2Type = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
             INetFwPolicy2 mgr = (INetFwPolicy2)Activator.CreateInstance(netFwPolicy2Type);
             NET_FW_PROFILE_TYPE2_ fwPublicProfileType = NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PUBLIC;
+
+            Console.WriteLine("Public Profile Type:");
 
             var firewallEnabled = mgr.get_FirewallEnabled(fwPublicProfileType);
             var blockAllInboundTraffic = mgr.get_BlockAllInboundTraffic(fwPublicProfileType);
