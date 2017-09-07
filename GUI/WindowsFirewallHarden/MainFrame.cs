@@ -106,6 +106,7 @@ namespace WindowsFirewallHarden
             btnDir.Enabled = true;
             btnFile.Enabled = true;
             btnRemove.Enabled = true;
+            btnHarden.Text = "Harden";
 
             sw.Stop();
             var elapsedMs = sw.ElapsedMilliseconds;
@@ -313,6 +314,7 @@ namespace WindowsFirewallHarden
             if(btnHarden.Text == "Harden")
             {
                 _stop = false;
+                lvLog.Items.Clear();
                 new Thread(excludeRule).Start();
                 btnHarden.Text = "Stop";
             }
