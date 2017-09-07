@@ -268,6 +268,39 @@ namespace WindowsFirewallHarden
             }
             lv.Items.Add(lvi);
         }
+
+        private delegate void removeToListViewDelegate(ListView lv, ListViewItem lvi);
+        private void removeItemToListView(ListView lv, ListViewItem lvi)
+        {
+            if (lv.InvokeRequired)
+            {
+                Invoke(new removeToListViewDelegate(removeItemToListView), new object[] { lv, lvi });
+                return;
+            }
+            lv.Items.Remove(lvi);
+        }
+
+        private void exportListView(ListView lv, string split)
+        {
+            using (sfd = new SaveFileDialog())
+            {
+                sfd.FileName = "Text Files (.txt | *.txt";
+                
+                if(sfd.ShowDialog() == DialogResult.OK)
+                {
+                    if(sfd.FileName != null)
+                    {
+                        using (StreamWriter sw = new StreamWriter(sfd.FileName))
+                        {
+                            foreach (ListViewItem item in lv.Items)
+                            {
+                                sw.WriteLine("{0}{1}{2}", item.SubItems[0].Text, split, item.SubItems[1].Text);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         #endregion
 
         private void btnHarden_Click(object sender, EventArgs e)
@@ -282,7 +315,7 @@ namespace WindowsFirewallHarden
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            
+            exportListView(lvLog, "|");
         }
 
         private void btnDir_Click(object sender, EventArgs e)
@@ -313,7 +346,7 @@ namespace WindowsFirewallHarden
 
         private void btnRemove_Click(object sender, EventArgs e)
         {
-
+            removeItemToListView(lvExclude, lvExclude.SelectedItems[0]);
         }
     }
 }
