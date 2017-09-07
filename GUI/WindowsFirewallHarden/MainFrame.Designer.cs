@@ -44,6 +44,7 @@
             this.btnDir = new System.Windows.Forms.Button();
             this.lvExclude = new WindowsFirewallHarden.AeroListView();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -221,11 +222,19 @@
             this.groupBox4.TabIndex = 5;
             this.groupBox4.TabStop = false;
             // 
+            // progressBar
+            // 
+            this.progressBar.Location = new System.Drawing.Point(12, 335);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(824, 23);
+            this.progressBar.TabIndex = 8;
+            // 
             // MainFrame
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(845, 340);
+            this.ClientSize = new System.Drawing.Size(845, 364);
+            this.Controls.Add(this.progressBar);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
@@ -260,6 +269,7 @@
         private System.Windows.Forms.Button btnDir;
         private AeroListView lvExclude;
         private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.ProgressBar progressBar;
     }
 }
 

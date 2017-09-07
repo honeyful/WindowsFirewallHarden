@@ -12,11 +12,6 @@ namespace WindowsFirewallHarden
     public partial class MainFrame : Form
     {
         private const string ext = "*.exe";
-        private readonly string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        private readonly string programFilesx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-        private readonly string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        private readonly string appRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        private readonly string appLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         private volatile bool _stop = false;
 
         OpenFileDialog ofd;
@@ -61,44 +56,42 @@ namespace WindowsFirewallHarden
                 ruleList.Add(rule.Name.ToLower());
             }
 
-            string[] rows = { programFiles, programFilesx86, winDir, appLocal, appRoaming };
 
-            foreach (var dir in rows)
+            List<string> list = GetFilesRecursive("C:\\");
+            progressBar.Maximum = list.Count;
+
+            foreach (var file in list)
             {
                 if (_stop) return;
-                foreach (var file in GetFiles(dir, ext))
+                var match = ruleList
+                .FirstOrDefault(stringToCheck => stringToCheck.Contains(file.ToLower()));
+                progressBar.Value += 1;
+                if (match != null)
                 {
-                    if (_stop) return;
-                    var match = ruleList
-                    .FirstOrDefault(stringToCheck => stringToCheck.Contains(file.ToLower()));
+                    string[] items = { file, "Already" };
+                    ListViewItem lvi = new ListViewItem(items);
+                    addItemToListView(lvLog, lvi);
 
-                    if (match != null)
-                    {
-                        string[] items = { file, "Already" };
-                        ListViewItem lvi = new ListViewItem(items);
-                        addItemToListView(lvLog, lvi);
+                    continue;
+                }
+                if (checkSignature(file))
+                {
+                    string[] items = { file, "Allow" };
+                    ListViewItem lvi = new ListViewItem(items);
+                    addItemToListView(lvLog, lvi);
 
-                        continue;
-                    }
-                    if (checkSignature(file))
-                    {
-                        string[] items = { file, "Allow" };
-                        ListViewItem lvi = new ListViewItem(items);
-                        addItemToListView(lvLog, lvi);
+                    allowRule(file);
+                }
+                else
+                {
+                    string[] items = { file, "Block" };
+                    ListViewItem lvi = new ListViewItem(items);
+                    addItemToListView(lvLog, lvi);
 
-                        allowRule(file);
-                    }
-                    else
-                    {
-                        string[] items = { file, "Block" };
-                        ListViewItem lvi = new ListViewItem(items);
-                        addItemToListView(lvLog, lvi);
-
-                        blockRule(file);
-                    }
+                    blockRule(file);
                 }
             }
-            
+
             initRule();
 
             btnReset.Enabled = true;
@@ -112,7 +105,7 @@ namespace WindowsFirewallHarden
             var elapsedMs = sw.ElapsedMilliseconds;
             MessageBox.Show("Done" + Environment.NewLine + $"Time:{elapsedMs}");
         }
-        
+
         private void excludeRule()
         {
             CheckForIllegalCrossThreadCalls = false;
@@ -145,7 +138,7 @@ namespace WindowsFirewallHarden
 
             new Thread(fwHarden).Start();
 
-        }      
+        }
 
         private void initRule()
         {
@@ -224,6 +217,37 @@ namespace WindowsFirewallHarden
             return isChainValid;
         }
 
+        private List<string> GetFilesRecursive(string initial)
+        {
+            List<string> result = new List<string>();
+
+            Stack<string> stack = new Stack<string>();
+
+            stack.Push(initial);
+
+            while ((stack.Count > 0))
+            {
+                string dir = stack.Pop();
+                try
+                {
+                    result.AddRange(Directory.GetFiles(dir, "*.exe"));
+
+                    string directoryName = null;
+                    foreach (string directoryName_loopVariable in Directory.GetDirectories(dir))
+                    {
+                        directoryName = directoryName_loopVariable;
+                        stack.Push(directoryName);
+                    }
+
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return result;
+        }
+
         private IEnumerable<string> GetFiles(string path, string exts)
         {
             Queue<string> q = new Queue<string>();
@@ -260,7 +284,6 @@ namespace WindowsFirewallHarden
                 }
             }
         }
-
         #endregion
 
         #region ListView
@@ -291,10 +314,10 @@ namespace WindowsFirewallHarden
             using (sfd = new SaveFileDialog())
             {
                 sfd.Filter = "Text Files (.txt | *.txt)";
-                
-                if(sfd.ShowDialog() == DialogResult.OK)
+
+                if (sfd.ShowDialog() == DialogResult.OK)
                 {
-                    if(sfd.FileName != null)
+                    if (sfd.FileName != null)
                     {
                         using (StreamWriter sw = new StreamWriter(sfd.FileName))
                         {
@@ -311,12 +334,13 @@ namespace WindowsFirewallHarden
 
         private void btnHarden_Click(object sender, EventArgs e)
         {
-            if(btnHarden.Text == "Harden")
+            if (btnHarden.Text == "Harden")
             {
                 _stop = false;
                 lvLog.Items.Clear();
                 new Thread(excludeRule).Start();
                 btnHarden.Text = "Stop";
+                progressBar.Value = 0;
             }
             else
             {
@@ -327,6 +351,7 @@ namespace WindowsFirewallHarden
                 btnDir.Enabled = true;
                 btnFile.Enabled = true;
                 btnRemove.Enabled = true;
+                progressBar.Value = 0;
             }
         }
 
