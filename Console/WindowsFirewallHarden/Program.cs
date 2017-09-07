@@ -18,17 +18,19 @@ namespace WindowsFirewallHarden
 
         static void Main(string[] args)
         {
+            Console.Title = "Windows Firewall Harden";
             while (true)
             {
                 Console.WriteLine("++++++++++++++++++");
                 Console.WriteLine("0. Exit");
                 Console.WriteLine("1. Firewall Checker");
                 Console.WriteLine("2. Firewall Harden");
-                Console.WriteLine("3. Firewall Harden - No Init Rule");
+                Console.WriteLine("3. Firewall Harden - No Init Rule ( No Default Block Inbound / Outbound )");
                 Console.WriteLine("4. Init Rule - Block All Inbound / Outbound Traffic ( Only Exception )");
                 Console.WriteLine("5. Reset");
                 Console.WriteLine("++++++++++++++++++");
                 Console.Write(">>>");
+
                 switch (int.Parse(Console.ReadLine()))
                 {
                     case 0:
