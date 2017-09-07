@@ -9,13 +9,6 @@ namespace WindowsFirewallHarden
 {
     class Program
     {
-        static string ext = "*.exe";
-        static string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        static string programFilesx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-        static string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        static string appRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        static string appLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
         static void Main(string[] args)
         {
             Console.Title = "Windows Firewall Harden";
@@ -90,31 +83,29 @@ namespace WindowsFirewallHarden
                 ruleList.Add(rule.Name.ToLower());
             }
 
-            string[] rows = { programFiles, programFilesx86, winDir, appLocal, appRoaming };
+            Console.WriteLine("Wait...");
+            List<string> list = GetFilesRecursive("C:\\");
 
-            foreach (var dir in rows)
-            {
-                foreach (var file in GetFiles(dir, ext))
+            foreach (var file in list)
+            { 
+                var match = ruleList
+                .FirstOrDefault(stringToCheck => stringToCheck.Contains(file.ToLower()));
+
+                if (match != null) { Console.WriteLine($"[A]{file}"); continue; }
+                //if (isRuleExists(file)) { Console.WriteLine($"[A]{file}"); continue; } // slow
+                if (checkSignature(file))
                 {
-                    var match = ruleList
-                    .FirstOrDefault(stringToCheck => stringToCheck.Contains(file.ToLower()));
+                    Console.WriteLine($"[+] {file}");
+                    allowRule(file);
 
-                    if(match != null) { Console.WriteLine($"[A]{file}"); continue; }
-                    //if (isRuleExists(file)) { Console.WriteLine($"[A]{file}"); continue; } // slow
-                    if (checkSignature(file))
-                    {
-                        Console.WriteLine($"[+] {file}");
-                        allowRule(file);
-
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[-] {file}");
-                        blockRule(file);
-                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[-] {file}");
+                    blockRule(file);
                 }
             }
-
+            
             if (Init)
                 initRule();
 
@@ -275,6 +266,37 @@ namespace WindowsFirewallHarden
 
             return isChainValid;
 
+        }
+
+        static List<string> GetFilesRecursive(string initial)
+        {
+            List<string> result = new List<string>();
+
+            Stack<string> stack = new Stack<string>();
+
+            stack.Push(initial);
+
+            while ((stack.Count > 0))
+            {
+                string dir = stack.Pop();
+                try
+                {
+                    result.AddRange(Directory.GetFiles(dir, "*.exe"));
+
+                    string directoryName = null;
+                    foreach (string directoryName_loopVariable in Directory.GetDirectories(dir))
+                    {
+                        directoryName = directoryName_loopVariable;
+                        stack.Push(directoryName);
+                    }
+
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return result;
         }
 
         static IEnumerable<string> GetFiles(string path, string exts)
