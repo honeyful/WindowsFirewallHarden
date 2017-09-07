@@ -17,6 +17,7 @@ namespace WindowsFirewallHarden
         private readonly string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         private readonly string appRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         private readonly string appLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        private volatile bool _stop = false;
 
         OpenFileDialog ofd;
         SaveFileDialog sfd;
@@ -39,10 +40,10 @@ namespace WindowsFirewallHarden
         #region Firewall
         private void fwHarden()
         {
+            if (_stop) return;
             CheckForIllegalCrossThreadCalls = false;
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            btnHarden.Enabled = false;
             btnReset.Enabled = false;
             btnSave.Enabled = false;
             btnDir.Enabled = false;
@@ -56,6 +57,7 @@ namespace WindowsFirewallHarden
 
             foreach (INetFwRule rule in fwPolicy2.Rules)
             {
+                if (_stop) return;
                 ruleList.Add(rule.Name.ToLower());
             }
 
@@ -63,8 +65,10 @@ namespace WindowsFirewallHarden
 
             foreach (var dir in rows)
             {
+                if (_stop) return;
                 foreach (var file in GetFiles(dir, ext))
                 {
+                    if (_stop) return;
                     var match = ruleList
                     .FirstOrDefault(stringToCheck => stringToCheck.Contains(file.ToLower()));
 
@@ -97,7 +101,6 @@ namespace WindowsFirewallHarden
             
             initRule();
 
-            btnHarden.Enabled = true;
             btnReset.Enabled = true;
             btnSave.Enabled = true;
             btnDir.Enabled = true;
@@ -117,6 +120,7 @@ namespace WindowsFirewallHarden
             {
                 foreach (var item in lvExclude.Items.Cast<ListViewItem>())
                 {
+                    if (_stop) return;
                     if (item.SubItems[1].Name == "File")
                     {
                         string[] rows = { item.Text, "Exclude" };
@@ -127,7 +131,8 @@ namespace WindowsFirewallHarden
                     else
                     {
                         foreach (var file in GetFiles(item.Text, ext))
-                        { 
+                        {
+                            if (_stop) return;
                             string[] rows = { file, "Exclude" };
                             ListViewItem lvi = new ListViewItem(rows);
                             addItemToListView(lvLog, lvi);
@@ -284,7 +289,7 @@ namespace WindowsFirewallHarden
         {
             using (sfd = new SaveFileDialog())
             {
-                sfd.FileName = "Text Files (.txt | *.txt";
+                sfd.Filter = "Text Files (.txt | *.txt)";
                 
                 if(sfd.ShowDialog() == DialogResult.OK)
                 {
@@ -305,12 +310,28 @@ namespace WindowsFirewallHarden
 
         private void btnHarden_Click(object sender, EventArgs e)
         {
-            new Thread(excludeRule).Start();
+            if(btnHarden.Text == "Harden")
+            {
+                _stop = false;
+                new Thread(excludeRule).Start();
+                btnHarden.Text = "Stop";
+            }
+            else
+            {
+                _stop = true;
+                btnHarden.Text = "Harden";
+                btnReset.Enabled = true;
+                btnSave.Enabled = true;
+                btnDir.Enabled = true;
+                btnFile.Enabled = true;
+                btnRemove.Enabled = true;
+            }
         }
 
         private void btnReset_Click(object sender, EventArgs e)
         {
             fwReset();
+            MessageBox.Show("Reset");
         }
 
         private void btnSave_Click(object sender, EventArgs e)
