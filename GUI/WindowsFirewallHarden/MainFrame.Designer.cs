@@ -30,20 +30,20 @@
         {
             this.btnSave = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.radAllowInbound = new System.Windows.Forms.RadioButton();
             this.radBlockInbound = new System.Windows.Forms.RadioButton();
+            this.radAllowInbound = new System.Windows.Forms.RadioButton();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.radBlockOutbound = new System.Windows.Forms.RadioButton();
             this.radAllowOutbound = new System.Windows.Forms.RadioButton();
             this.lvLog = new WindowsFirewallHarden.AeroListView();
             this.btnReset = new System.Windows.Forms.Button();
             this.btnHarden = new System.Windows.Forms.Button();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.btnRemove = new System.Windows.Forms.Button();
+            this.btnFile = new System.Windows.Forms.Button();
+            this.btnDir = new System.Windows.Forms.Button();
             this.lvExclude = new WindowsFirewallHarden.AeroListView();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.btnDir = new System.Windows.Forms.Button();
-            this.btnFile = new System.Windows.Forms.Button();
-            this.btnRemove = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -71,27 +71,6 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Inbound";
             // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.radBlockOutbound);
-            this.groupBox2.Controls.Add(this.radAllowOutbound);
-            this.groupBox2.Location = new System.Drawing.Point(221, 12);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 70);
-            this.groupBox2.TabIndex = 2;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Outbound";
-            // 
-            // radAllowInbound
-            // 
-            this.radAllowInbound.AutoSize = true;
-            this.radAllowInbound.Location = new System.Drawing.Point(6, 20);
-            this.radAllowInbound.Name = "radAllowInbound";
-            this.radAllowInbound.Size = new System.Drawing.Size(54, 16);
-            this.radAllowInbound.TabIndex = 0;
-            this.radAllowInbound.Text = "Allow";
-            this.radAllowInbound.UseVisualStyleBackColor = true;
-            // 
             // radBlockInbound
             // 
             this.radBlockInbound.AutoSize = true;
@@ -103,6 +82,27 @@
             this.radBlockInbound.TabStop = true;
             this.radBlockInbound.Text = "Block";
             this.radBlockInbound.UseVisualStyleBackColor = true;
+            // 
+            // radAllowInbound
+            // 
+            this.radAllowInbound.AutoSize = true;
+            this.radAllowInbound.Location = new System.Drawing.Point(6, 20);
+            this.radAllowInbound.Name = "radAllowInbound";
+            this.radAllowInbound.Size = new System.Drawing.Size(54, 16);
+            this.radAllowInbound.TabIndex = 0;
+            this.radAllowInbound.Text = "Allow";
+            this.radAllowInbound.UseVisualStyleBackColor = true;
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.radBlockOutbound);
+            this.groupBox2.Controls.Add(this.radAllowOutbound);
+            this.groupBox2.Location = new System.Drawing.Point(221, 12);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(200, 70);
+            this.groupBox2.TabIndex = 2;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Outbound";
             // 
             // radBlockOutbound
             // 
@@ -169,6 +169,36 @@
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Exclude";
             // 
+            // btnRemove
+            // 
+            this.btnRemove.Location = new System.Drawing.Point(314, 281);
+            this.btnRemove.Name = "btnRemove";
+            this.btnRemove.Size = new System.Drawing.Size(89, 23);
+            this.btnRemove.TabIndex = 8;
+            this.btnRemove.Text = "Remove";
+            this.btnRemove.UseVisualStyleBackColor = true;
+            this.btnRemove.Click += new System.EventHandler(this.btnRemove_Click);
+            // 
+            // btnFile
+            // 
+            this.btnFile.Location = new System.Drawing.Point(172, 281);
+            this.btnFile.Name = "btnFile";
+            this.btnFile.Size = new System.Drawing.Size(136, 23);
+            this.btnFile.TabIndex = 7;
+            this.btnFile.Text = "Add File";
+            this.btnFile.UseVisualStyleBackColor = true;
+            this.btnFile.Click += new System.EventHandler(this.btnFile_Click);
+            // 
+            // btnDir
+            // 
+            this.btnDir.Location = new System.Drawing.Point(6, 281);
+            this.btnDir.Name = "btnDir";
+            this.btnDir.Size = new System.Drawing.Size(160, 23);
+            this.btnDir.TabIndex = 6;
+            this.btnDir.Text = "Add Directory";
+            this.btnDir.UseVisualStyleBackColor = true;
+            this.btnDir.Click += new System.EventHandler(this.btnDir_Click);
+            // 
             // lvExclude
             // 
             this.lvExclude.FullRowSelect = true;
@@ -190,33 +220,6 @@
             this.groupBox4.Size = new System.Drawing.Size(409, 241);
             this.groupBox4.TabIndex = 5;
             this.groupBox4.TabStop = false;
-            // 
-            // btnDir
-            // 
-            this.btnDir.Location = new System.Drawing.Point(6, 281);
-            this.btnDir.Name = "btnDir";
-            this.btnDir.Size = new System.Drawing.Size(160, 23);
-            this.btnDir.TabIndex = 6;
-            this.btnDir.Text = "Add Directory";
-            this.btnDir.UseVisualStyleBackColor = true;
-            // 
-            // btnFile
-            // 
-            this.btnFile.Location = new System.Drawing.Point(172, 281);
-            this.btnFile.Name = "btnFile";
-            this.btnFile.Size = new System.Drawing.Size(136, 23);
-            this.btnFile.TabIndex = 7;
-            this.btnFile.Text = "Add File";
-            this.btnFile.UseVisualStyleBackColor = true;
-            // 
-            // btnRemove
-            // 
-            this.btnRemove.Location = new System.Drawing.Point(314, 281);
-            this.btnRemove.Name = "btnRemove";
-            this.btnRemove.Size = new System.Drawing.Size(89, 23);
-            this.btnRemove.TabIndex = 8;
-            this.btnRemove.Text = "Remove";
-            this.btnRemove.UseVisualStyleBackColor = true;
             // 
             // MainFrame
             // 

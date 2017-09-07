@@ -18,6 +18,10 @@ namespace WindowsFirewallHarden
         private readonly string appRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         private readonly string appLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
+        OpenFileDialog ofd;
+        SaveFileDialog sfd;
+        FolderBrowserDialog fbd;
+
         public MainFrame()
         {
             InitializeComponent();
@@ -25,6 +29,7 @@ namespace WindowsFirewallHarden
 
         private void MainFrame_Load(object sender, EventArgs e)
         {
+            FormBorderStyle = FormBorderStyle.FixedToolWindow;
             lvLog.Columns.Add("Path", 300);
             lvLog.Columns.Add("Status", 100);
             lvExclude.Columns.Add("Path", 300);
@@ -34,7 +39,15 @@ namespace WindowsFirewallHarden
         #region Firewall
         private void fwHarden()
         {
-            //var sw = System.Diagnostics.Stopwatch.StartNew();
+            CheckForIllegalCrossThreadCalls = false;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            btnHarden.Enabled = false;
+            btnReset.Enabled = false;
+            btnSave.Enabled = false;
+            btnDir.Enabled = false;
+            btnFile.Enabled = false;
+            btnRemove.Enabled = false;
 
             Type tNetFwPolicy2 = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
             INetFwPolicy2 fwPolicy2 = (INetFwPolicy2)Activator.CreateInstance(tNetFwPolicy2);
@@ -82,29 +95,68 @@ namespace WindowsFirewallHarden
                 }
             }
             
-                initRule();
+            initRule();
 
-            //sw.Stop();
-            //var elapsedMs = sw.ElapsedMilliseconds;
-            //Console.WriteLine($"Time:{elapsedMs}");
+            btnHarden.Enabled = true;
+            btnReset.Enabled = true;
+            btnSave.Enabled = true;
+            btnDir.Enabled = true;
+            btnFile.Enabled = true;
+            btnRemove.Enabled = true;
+
+            sw.Stop();
+            var elapsedMs = sw.ElapsedMilliseconds;
+            MessageBox.Show("Done" + Environment.NewLine + $"Time:{elapsedMs}");
         }
+        
+        private void excludeRule()
+        {
+            CheckForIllegalCrossThreadCalls = false;
+
+            if (lvExclude.Items.Count > 0)
+            {
+                foreach (var item in lvExclude.Items.Cast<ListViewItem>())
+                {
+                    if (item.SubItems[1].Name == "File")
+                    {
+                        string[] rows = { item.Text, "Exclude" };
+                        ListViewItem lvi = new ListViewItem(rows);
+                        addItemToListView(lvLog, lvi);
+                        allowRule(lvi.Name);
+                    }
+                    else
+                    {
+                        foreach (var file in GetFiles(item.Text, ext))
+                        { 
+                            string[] rows = { file, "Exclude" };
+                            ListViewItem lvi = new ListViewItem(rows);
+                            addItemToListView(lvLog, lvi);
+                            allowRule(file);
+                        }
+                    }
+                }
+            }
+
+            new Thread(fwHarden).Start();
+
+        }      
 
         private void initRule()
         {
             Type netFwPolicy2Type = Type.GetTypeFromProgID("HNetCfg.FwPolicy2");
             INetFwPolicy2 mgr = (INetFwPolicy2)Activator.CreateInstance(netFwPolicy2Type);
 
-            mgr.set_BlockAllInboundTraffic(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_DOMAIN, true);
+            mgr.set_BlockAllInboundTraffic(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_DOMAIN, radBlockInbound.Checked ? true : false);
             mgr.set_DefaultInboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_DOMAIN, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
-            mgr.set_DefaultOutboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_DOMAIN, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
+            mgr.set_DefaultOutboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_DOMAIN, !radBlockOutbound.Checked ? NET_FW_ACTION_.NET_FW_ACTION_ALLOW : NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
 
-            mgr.set_BlockAllInboundTraffic(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PRIVATE, true);
+            mgr.set_BlockAllInboundTraffic(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PRIVATE, radBlockInbound.Checked ? true : false);
             mgr.set_DefaultInboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PRIVATE, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
             mgr.set_DefaultOutboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PRIVATE, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
 
-            mgr.set_BlockAllInboundTraffic(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PUBLIC, true);
+            mgr.set_BlockAllInboundTraffic(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PUBLIC, radBlockInbound.Checked ? true : false);
             mgr.set_DefaultInboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PUBLIC, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
-            mgr.set_DefaultOutboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PUBLIC, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
+            mgr.set_DefaultOutboundAction(NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_PUBLIC, !radBlockOutbound.Checked ? NET_FW_ACTION_.NET_FW_ACTION_ALLOW : NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
         }
 
         private void allowRule(string fileName)
@@ -164,7 +216,6 @@ namespace WindowsFirewallHarden
             isChainValid = certChain.Build(cert);
 
             return isChainValid;
-
         }
 
         private IEnumerable<string> GetFiles(string path, string exts)
@@ -221,7 +272,7 @@ namespace WindowsFirewallHarden
 
         private void btnHarden_Click(object sender, EventArgs e)
         {
-            new Thread(fwHarden).Start();
+            new Thread(excludeRule).Start();
         }
 
         private void btnReset_Click(object sender, EventArgs e)
@@ -230,6 +281,37 @@ namespace WindowsFirewallHarden
         }
 
         private void btnSave_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void btnDir_Click(object sender, EventArgs e)
+        {
+            using (fbd = new FolderBrowserDialog())
+            {
+                if (fbd.ShowDialog() == DialogResult.OK)
+                {
+                    string[] rows = { fbd.SelectedPath, "Directory" };
+                    ListViewItem lvi = new ListViewItem(rows);
+                    addItemToListView(lvExclude, lvi);
+                }
+            }
+        }
+
+        private void btnFile_Click(object sender, EventArgs e)
+        {
+            using (ofd = new OpenFileDialog())
+            {
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    string[] rows = { ofd.FileName, "File" };
+                    ListViewItem lvi = new ListViewItem(rows);
+                    addItemToListView(lvExclude, lvi);
+                }
+            }
+        }
+
+        private void btnRemove_Click(object sender, EventArgs e)
         {
 
         }
